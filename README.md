@@ -10,29 +10,42 @@ Claude Desktop keeps Code session metadata under an account and organization dir
 
 Requires macOS, Claude Desktop, and Python 3.9 or later.
 
-1. Sign into your new account in Claude Desktop and open the **Code** tab once.
-2. Let active tasks finish. The tool will quit and reopen Claude.
-3. Download this repository from **Code → Download ZIP** and unzip it, or clone it:
-
-   ```sh
-   git clone https://github.com/AGIHunt/claude-session-restore.git
-   cd claude-session-restore
-   ```
-4. Double-click `Restore-Claude-Sessions.command` in Finder, or run:
-
-   ```sh
-   python3 restore_sessions.py
-   ```
-
-If the downloaded launcher lacks execute permission, run `chmod +x Restore-Claude-Sessions.command`. If macOS blocks opening the launcher, run the Python command in Terminal instead.
-
-Preview without closing Claude or changing files:
+Install once:
 
 ```sh
-python3 restore_sessions.py --dry-run
+curl -fsSL https://raw.githubusercontent.com/AGIHunt/claude-session-restore/main/install.sh | bash
 ```
 
-The launcher is portable: it uses its own directory, with no hard-coded username or installation path.
+Open a **new terminal**, then after signing into a new Claude account and opening the Code tab:
+
+```sh
+claude-session-restore
+```
+
+Let active tasks finish first: recovery quits and reopens Claude. Installation itself does not run recovery. To use the command immediately in the same terminal, run `export PATH="$HOME/.local/bin:$PATH"` once.
+
+```sh
+claude-session-restore --dry-run     # Preview without modifying sessions
+claude-session-restore --uninstall   # Remove the tool; keep history and backups
+```
+
+Re-run the installation command to update. No sudo, alias setup, git clone, or Python packages are required. Python 3.9+ must already be installed; if missing, the installer prints a download link.
+
+The installer downloads the current `main` version. You can [inspect install.sh](install.sh) before running it, or download the repository and run `bash install.sh`. It installs under `~/.local/share/claude-session-restore`, places the command in `~/.local/bin`, and adds that directory to `.zshrc` and `.bash_profile` (backing up existing files before editing). Other shells require you to add `~/.local/bin` to PATH yourself. Uninstall keeps that shared PATH entry and all session backups.
+
+### Optional short alias
+
+For an even shorter command, add this to `~/.zshrc`:
+
+```sh
+alias ccr='claude-session-restore'
+```
+
+In a new terminal, `ccr` restores sessions and `ccr --dry-run` previews them.
+
+### Without installing
+
+Download **Code → Download ZIP**, unzip, and double-click `Restore-Claude-Sessions.command`, or run `python3 restore_sessions.py` from that folder. If macOS blocks opening the launcher, use the Python command in Terminal. If execute permission is missing, run `chmod +x Restore-Claude-Sessions.command`.
 
 ## What it does
 
@@ -58,13 +71,13 @@ By default, all ordinary account/organization directories are considered. The so
 To restrict recovery to a specific old account:
 
 ```sh
-python3 restore_sessions.py --source-account OLD_ACCOUNT_UUID
+claude-session-restore --source-account OLD_ACCOUNT_UUID
 ```
 
 If the current account has multiple organizations, select one explicitly:
 
 ```sh
-python3 restore_sessions.py --org TARGET_ORGANIZATION_UUID
+claude-session-restore --org TARGET_ORGANIZATION_UUID
 ```
 
 UUIDs can be found in the local directory layout above. Symlinked account/organization directories are skipped. There is no background service or automatic account monitoring.

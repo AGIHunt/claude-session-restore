@@ -8,24 +8,42 @@
 
 需要 macOS、Claude Desktop 和 Python 3.9 以上版本。
 
-1. 在 Claude 登录新账号，打开一次 **Code** 页。
-2. 等正在运行的任务结束。工具会正常退出并重新打开 Claude。
-3. 在 GitHub 点击 **Code → Download ZIP**，解压。
-4. 双击 `Restore-Claude-Sessions.command`。
-
-也可以在解压后的目录打开终端执行：
+首次只需安装一次：
 
 ```sh
-python3 restore_sessions.py
+curl -fsSL https://raw.githubusercontent.com/AGIHunt/claude-session-restore/main/install.sh | bash
 ```
 
-预览恢复数量，不关闭 Claude、不修改文件：
+然后**新开一个终端窗口**。以后登录新 Claude 账号、打开一次 Code 页后，执行：
 
 ```sh
-python3 restore_sessions.py --dry-run
+claude-session-restore
 ```
 
-如果启动器没有执行权限，运行 `chmod +x Restore-Claude-Sessions.command`。如果 macOS 阻止打开启动器，直接在终端运行上面的 Python 命令。
+恢复前先等正在运行的任务结束，工具会退出并重新打开 Claude。安装本身不会执行恢复。如果想在当前终端立即使用，先执行一次 `export PATH="$HOME/.local/bin:$PATH"`。
+
+```sh
+claude-session-restore --dry-run     # 只预览，不修改会话
+claude-session-restore --uninstall   # 卸载工具，保留历史和备份
+```
+
+再次运行安装命令即可更新。无需 sudo、手动配置 alias、克隆仓库或安装 Python 第三方依赖。需要已有 Python 3.9+；缺少时安装器会提示下载地址。
+
+安装器下载当前 main 版本，可以先查看 [install.sh](install.sh)，也可以下载仓库后执行 `bash install.sh`。程序放在 `~/.local/share/claude-session-restore`，命令放在 `~/.local/bin`。安装器会先备份已有 `.zshrc` 和 `.bash_profile`，再补充 PATH 配置；重复安装不重复添加。其他 shell 需自行把 `~/.local/bin` 加入 PATH。卸载保留共享的 PATH 配置与全部会话备份。
+
+### 想更短？可选 alias
+
+在 `~/.zshrc` 加一行：
+
+```sh
+alias ccr='claude-session-restore'
+```
+
+新开终端后，输入 `ccr` 即可恢复，`ccr --dry-run` 即可预览。
+
+### 不安装也能用
+
+GitHub 点击 **Code → Download ZIP**，解压后双击 `Restore-Claude-Sessions.command`，或者在该目录执行 `python3 restore_sessions.py`。若启动器缺少执行权限，运行 `chmod +x Restore-Claude-Sessions.command`；若 macOS 阻止打开，直接在终端运行 Python 命令即可。
 
 ## 恢复逻辑
 
@@ -38,13 +56,13 @@ python3 restore_sessions.py --dry-run
 默认比较所有普通账号／组织目录；会话数最多的旧目录作为缺失会话的归档、删除状态来源。这只是启发式规则，不代表该账号一定最新。对话指向另外按活动时间比较。若只想从指定旧账号导入：
 
 ```sh
-python3 restore_sessions.py --source-account 旧账号UUID
+claude-session-restore --source-account 旧账号UUID
 ```
 
 当前账号有多个组织时，必须指定：
 
 ```sh
-python3 restore_sessions.py --org 目标组织UUID
+claude-session-restore --org 目标组织UUID
 ```
 
 账号及组织 UUID 可在此目录中查找：
